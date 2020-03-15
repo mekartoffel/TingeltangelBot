@@ -1,11 +1,13 @@
+from threading import Thread
 import os
 import sys
-from threading import Thread
 import logging
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 
 from my_token import *
+from my_functions import *
+
 
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Hallo, hier ist der Tingeltangelbot.\nIch habe noch keine Funktion, aber ich freue mich, dass du mit mir chatten möchtest.")
@@ -13,11 +15,11 @@ def start(update, context):
 def echo(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
 
-def menu_test(update, context):
-    some_strings = ["col1", "col2", "row2"]
+def menu_callback(update, context):
+    some_strings = ["Dip", "Klops", "MUANTI"]
     button_list = [telegram.InlineKeyboardButton(s, callback_data=s) for s in some_strings]
     reply_markup = telegram.InlineKeyboardMarkup(build_menu(button_list, n_cols=2))
-    context.bot.send_message(chat_id=update.effective_chat.id, text="A two-column menu", reply_markup=reply_markup)
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Und?", reply_markup=reply_markup)
 
 def build_menu(buttons,
                n_cols,
@@ -32,7 +34,10 @@ def build_menu(buttons,
 
 def menu_actions(update, context):
     query = update.callback_query
-    context.bot.send_message(chat_id=update.effective_chat.id, text=query.data)
+    if query.data == 'Klops':
+        bot.send_sticker(chat_id=update.effective_chat.id, sticker='CAACAgIAAxkBAANSXm6kSVIrMGb3nYza8xUaAofguYwAAg8AAyu-QRarA2oDdEAg0RgE')
+    reply = 'Ja, stimmt. {}'.format(query.data)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=reply)
 
 def stop_and_restart():
     """Gracefully stop the Updater and replace the current process with a new one"""
@@ -40,12 +45,10 @@ def stop_and_restart():
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 def restart(update, context):
-    update.message.reply_text('Bot is restarting...')
+    update.message.reply_text('Moment, ich starte neu...')
     Thread(target=stop_and_restart).start()
 
-
 bot = telegram.Bot(token=TOKEN)
-print(bot.get_me())
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 updater = Updater(token=TOKEN, use_context=True)
@@ -53,8 +56,8 @@ dispatcher = updater.dispatcher
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
 
-poll_button_handler = CommandHandler('poll', menu_test)
-dispatcher.add_handler(poll_button_handler)
+menu_handler = CommandHandler('menu', menu_callback)
+dispatcher.add_handler(menu_handler)
 dispatcher.add_handler(CallbackQueryHandler(menu_actions))
 
 dispatcher.add_handler(CommandHandler('r', restart, filters=Filters.user(username=MY_USERNAME)))
