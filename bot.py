@@ -53,6 +53,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(leve
 
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
+
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
 
